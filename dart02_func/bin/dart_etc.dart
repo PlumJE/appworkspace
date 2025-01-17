@@ -25,3 +25,10 @@ void main(List<String> args) {
   result = addLambda(2, 3);
   print('lambda : $result');
 }
+
+/*
+Circle = <Object>
+  radius = 0.0
+  get = function(radius)
+    self.radius = radius if !radius
+*/
