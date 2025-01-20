@@ -5,20 +5,18 @@ class Person {
   // 멤버변수 == 필드
   String? name;
 
-  // 생성자 => 생략 시 기본생성자 사용
-  // Person() {
-  // }
-
   // 멤버함수 == 메소드
   String getName() {
     return name ?? 'No Person';
   }
+
+  // 생성자 -> 생략시 기본생성자 사용
 }
 
 void main() {
   // 인스턴스(객체) 생성 => 실제 사용이 가능
   Person student = new Person();
-  var teacher = Person();
+  Person teacher = Person();
 
   // student : 'Kim', teacher : 'Park'
   student.name = 'Kim';
