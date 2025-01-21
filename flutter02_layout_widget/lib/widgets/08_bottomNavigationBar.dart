@@ -1,4 +1,4 @@
-// widgets/07_pageView.dart
+// widgets/bottomNavigationBar.dart
 
 import 'package:flutter/material.dart';
 
@@ -22,24 +22,66 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final PageController _pageController = PageController(
-    initialPage: 1,
-    keepPage: true,
-  );
+  // 현재 선택한 페이지
+  int _currentIndex = 1;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Layout - Column Widget'),
+        title: Text('Layout - BottomNavigationBar Widget'),
       ),
-      body: PageView(
-        controller: _pageController,
-        children: [
-          firstPage(),
-          secondPage(),
+      body: getPage(),
+      bottomNavigationBar: BottomNavigationBar(
+        onTap: (index) {
+          // index : 사용자가 선택한 메뉴에 대한 정보
+          setState(() {
+            _currentIndex = index;
+          }); // => build() 함수
+        },
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.home,
+              color: _currentIndex == 0 ? Colors.blue : Colors.blueGrey,
+            ),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.search,
+              color: _currentIndex == 1 ? Colors.blue : Colors.blueGrey,
+            ),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.settings,
+              color: _currentIndex == 2 ? Colors.blue : Colors.blueGrey,
+            ),
+            label: 'Setting',
+          ),
         ],
       ),
     );
+  }
+
+  Widget getPage() {
+    // 입력한 페이지 호출
+    late Widget page;
+    switch (_currentIndex) {
+      case 0:
+        page = firstPage();
+        break;
+      case 1:
+        page = secondPage();
+        break;
+      case 2:
+        page = thirdPage();
+        break;
+    }
+
+    return page;
   }
 }
 
@@ -106,4 +148,17 @@ GridView secondPage() {
             alignment: Alignment.center,
             child: Text('$count')),
       ]);
+}
+
+Container thirdPage() {
+  return Container(
+    alignment: Alignment.center,
+    child: Text(
+      'Settings',
+      style: TextStyle(
+        color: Colors.blue,
+        fontSize: 50,
+      ),
+    ),
+  );
 }
