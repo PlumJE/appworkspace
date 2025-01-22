@@ -166,3 +166,18 @@ TextButton textButtonIcon() {
 }
 
 // 5. OverflowBar
+OverflowBar overflowBar() {
+  return OverflowBar(
+    // 기본
+    alignment: MainAxisAlignment.end, // 자식들의 정렬방식
+    spacing: 20, // 자식들 간의 간격
+    // overflow인 경우
+    overflowAlignment: OverflowBarAlignment.end, // Overflow시 정렬방식
+    overflowSpacing: 5, // Overflow시 간격
+    children: [
+      textButton(),
+      outlinedButton(),
+      textButtonIcon(),
+    ],
+  );
+}
