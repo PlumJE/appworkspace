@@ -1,23 +1,22 @@
-// lib/apis/boardAPI.dart
-
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter06_http_board/models/board.dart';
+import 'package:leejieung/models/memo.dart';
 
-class BoardServer {
+class MemoAPI {
   // 필드 => url 정보들
   final String origin = 'http://192.168.0.11:8099';
-  final String selectAll = '/boardList';
-  final String selectOne = '/boardInfo?no=';
-  final String insertOne = '/boardInsert';
-  final String updateOne = '/boardUpdate?';
-  final String deleteOne = '/boardDelete?no=';
+  final String selectAll = '/memoList';
+  final String selectOne = '/memoInfo?memoNo=';
+  final String insertOne = '/memoInsert';
+  final String updateOne = '/memoUpdate?';
+  final String deleteOne = '/memoDelete?memoNo=';
+  final String addOneFav = 'memoBookMark';
 
   // 메서드
   // 전체조회
-  Future<List<BoardVO>> selectBoards() async {
+  Future<List<MemoVO>> selectMemos() async {
     // 1) 경로
     // http://192.168.0.11:8099/boardList
     String selected = origin + selectAll;
@@ -37,16 +36,16 @@ class BoardServer {
       final List<dynamic> jsonRes = jsonDecode(decodeRes);
 
       // 3) 응답을 List<BoardVO>로 변환
-      List<BoardVO> boardList = List.generate(jsonRes.length, (index) {
+      List<MemoVO> boardList = List.generate(jsonRes.length, (index) {
         dynamic map = jsonRes[index];
 
-        BoardVO board = BoardVO(
-          no: map['no'],
-          title: map['title'],
-          writer: map['writer'],
-          content: map['content'],
+        MemoVO board = MemoVO(
+          memoNo: map['memoNo'],
+          memoTitle: map['memoTitle'],
+          memoWriter: map['memoWriter'],
+          memoContent: map['memoContent'],
           regDate: map['regDate'],
-          upDate: map['upDate'],
+          bookMark: map['bookMark'],
         );
 
         return board;
@@ -55,13 +54,12 @@ class BoardServer {
       return boardList;
     } else {
       print('list fail : ${result.body}');
-      // Future<T> : T, Future의 결과가 가지는 데이터 타입
       return [];
     }
   }
 
   // 단건조회
-  Future<BoardVO> selectBoard(int no) async {
+  Future<MemoVO> selectMemo(int no) async {
     // http://192.168.0.11:8099/boardInfo?no=1
     String selected = origin + selectOne + no.toString();
     var url = Uri.parse(selected);
@@ -73,22 +71,22 @@ class BoardServer {
       // content-type
       final dynamic jsonRes = jsonDecode(decodeRes);
 
-      return BoardVO(
-        no: jsonRes['no'],
-        title: jsonRes['title'],
-        writer: jsonRes['writer'],
-        content: jsonRes['content'],
+      return MemoVO(
+        memoNo: jsonRes['memoNo'],
+        memoTitle: jsonRes['memoTitle'],
+        memoWriter: jsonRes['memoWriter'],
+        memoContent: jsonRes['memoContent'],
         regDate: jsonRes['regDate'],
-        upDate: jsonRes['upDate'],
+        bookMark: jsonRes['bookMark'],
       );
     } else {
       print('info fail : ${result.body}');
-      return BoardVO.empty();
+      return MemoVO.createEmpty();
     }
   }
 
   // 등록
-  Future<int> insertBoard(BoardVO board) async {
+  Future<int> insertMemo(MemoVO board) async {
     // POST, http://192.168.0.11:8099/boardInsert
     String selected = origin + insertOne;
     var url = Uri.parse(selected);
@@ -98,9 +96,9 @@ class BoardServer {
     http.Response result = await http.post(url, body: info);
     if (result.statusCode == HttpStatus.ok) {
       final decodeRes = utf8.decode(result.bodyBytes);
-      final boardInfo = jsonDecode(decodeRes);
+      final memoInfo = jsonDecode(decodeRes);
 
-      return boardInfo['no'];
+      return memoInfo['memoNo'];
     } else {
       print('insert fail : ${result.body}');
       return 0;
@@ -108,7 +106,7 @@ class BoardServer {
   }
 
   // 수정
-  Future<int> updateBoard(BoardVO board) async {
+  Future<int> updateMemo(MemoVO board) async {
     // POST, http://192.168.0.11:8099/boardUpdate?no=1
     String selected = origin + updateOne;
     var url = Uri.parse(selected);
@@ -125,9 +123,9 @@ class BoardServer {
 
     if (result.statusCode == HttpStatus.ok) {
       final decodeRes = utf8.decode(result.bodyBytes);
-      final boardInfo = jsonDecode(decodeRes);
+      final memoInfo = jsonDecode(decodeRes);
 
-      return boardInfo['no'];
+      return memoInfo['memoNo'];
     } else {
       print('update fail : ${result.body}');
       return 0;
@@ -135,7 +133,7 @@ class BoardServer {
   }
 
   // 삭제
-  Future<int> deleteBoard(int no) async {
+  Future<int> deleteMemo(int no) async {
     // http://192.168.0.11:8099/boardDelete?no=1
     String selected = origin + deleteOne + no.toString();
     var url = Uri.parse(selected);
@@ -143,13 +141,40 @@ class BoardServer {
     http.Response result = await http.get(url);
     if (result.statusCode == HttpStatus.ok) {
       // content-type
-      final dynamic jsonRes = jsonDecode(result.body);
+      final memoInfo = jsonDecode(result.body);
 
-      return jsonRes['no'];
+      return memoInfo['memoNo'];
     } else {
       print('delete fail : ${result.body}');
       return 0;
     }
   }
+
+  // 즐겨찾기 등록
+  Future<bool> addFav(int no, String bookMark) async {
+    // POST, http://192.168.0.11:8099/boardUpdate?no=1
+    String selected = origin + addOneFav;
+    var url = Uri.parse(selected);
+
+    // content-type : application/json
+    Map<String, dynamic> info = {
+      'memoNo': no,
+      'bookMark': bookMark,
+    };
+
+    http.Response result = await http.post(
+      url,
+      headers: {'content-type': 'application/json'},
+      body: jsonEncode(info),
+    );
+
+    if (result.statusCode == HttpStatus.ok) {
+      final resJson = jsonDecode(result.body);
+
+      return resJson['result'];
+    } else {
+      print('update fail : ${result.body}');
+      return false;
+    }
+  }
 }
-//
