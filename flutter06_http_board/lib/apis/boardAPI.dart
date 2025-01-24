@@ -19,7 +19,8 @@ class BoardServer {
   // 전체조회
   Future<List<BoardVO>> selectBoards() async {
     // 1) 경로
-    String selected = origin + selectAll; // http://192.168.0.11:8099/boardList
+    // http://192.168.0.11:8099/boardList
+    String selected = origin + selectAll;
     var url = Uri.parse(selected);
 
     // 2) AJAX
@@ -85,9 +86,70 @@ class BoardServer {
       return BoardVO.empty();
     }
   }
+
   // 등록
+  Future<int> insertBoard(BoardVO board) async {
+    // POST, http://192.168.0.11:8099/boardInsert
+    String selected = origin + insertOne;
+    var url = Uri.parse(selected);
+
+    // content-type : application/x-www-form-urlencoded => Map<String, String> 타입
+    Map<String, dynamic> info = board.toMap();
+    http.Response result = await http.post(url, body: info);
+    if (result.statusCode == HttpStatus.ok) {
+      final decodeRes = utf8.decode(result.bodyBytes);
+      final boardInfo = jsonDecode(decodeRes);
+
+      return boardInfo['no'];
+    } else {
+      print('insert fail : ${result.body}');
+      return 0;
+    }
+  }
 
   // 수정
+  Future<int> updateBoard(BoardVO board) async {
+    // POST, http://192.168.0.11:8099/boardUpdate?no=1
+    String selected = origin + updateOne + board.no.toString();
+    var url = Uri.parse(selected);
+
+    // content-type : application/json
+    Map<String, dynamic> info = board.toMap();
+    http.Response result = await http.post(
+      url,
+      // 1) headers 수정
+      headers: {'content-type': 'application/json'},
+      // 2) json으로 변환
+      body: jsonEncode(info),
+    );
+
+    if (result.statusCode == HttpStatus.ok) {
+      final decodeRes = utf8.decode(result.bodyBytes);
+      final boardInfo = jsonDecode(decodeRes);
+
+      return boardInfo['no'];
+    } else {
+      print('update fail : ${result.body}');
+      return 0;
+    }
+  }
 
   // 삭제
+  Future<int> deleteBoard(int no) async {
+    // http://192.168.0.11:8099/boardDelete?no=1
+    String selected = origin + deleteOne + no.toString();
+    var url = Uri.parse(selected);
+
+    http.Response result = await http.get(url);
+    if (result.statusCode == HttpStatus.ok) {
+      // content-type
+      final dynamic jsonRes = jsonDecode(result.body);
+
+      return jsonRes['no'];
+    } else {
+      print('delete fail : ${result.body}');
+      return 0;
+    }
+  }
 }
+//
